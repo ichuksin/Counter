@@ -1,31 +1,35 @@
 using System.Collections;
-using System.Collections.Generic;
-
-
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 
 public class Counter : MonoBehaviour
 {
-    [SerializeField] private Text _text;
-
+    private int _leftMouseButtonIndex = 0;
+    private Coroutine _coroutine;
     private float _delay = 0.5f;
     private int _counter = 0;
-    private bool isStarted = false;
+    private bool isWork = false;
+
+    public event UnityAction<int> CounterChanged;
+
+    private void Start()
+    {
+        CounterChanged?.Invoke(_counter);
+    }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(_leftMouseButtonIndex))
         {
-            if (isStarted)
+            if (isWork)
             {
-                isStarted = false;
-                StopAllCoroutines();
+                isWork = false;
+                StopCoroutine(_coroutine);
             }
             else
             {
-                isStarted = true;
-                StartCoroutine(Timer(_delay));
+                isWork = true;
+                _coroutine = StartCoroutine(Timer(_delay));
             }
         }
     }
@@ -34,16 +38,11 @@ public class Counter : MonoBehaviour
     {
         var wait = new WaitForSeconds (delay);
         
-        while (true)
+        while (enabled)
         {
-            DispalyCounter(_counter);
             _counter++;
+            CounterChanged?.Invoke(_counter);
             yield return wait;
         }
-    }
-    
-    private void DispalyCounter(int i)
-    {
-        _text.text = i.ToString();  
     }
 }
