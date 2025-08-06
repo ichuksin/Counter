@@ -4,34 +4,40 @@ using UnityEngine.Events;
 
 public class Counter : MonoBehaviour
 {
-    private int _leftMouseButtonIndex = 0;
-    private Coroutine _coroutine;
+    [SerializeField] private InputReader _inputReader;
+
+    private Coroutine _coroutine = null;
     private float _delay = 0.5f;
     private int _counter = 0;
-    private bool isWork = false;
 
     public event UnityAction<int> CounterChanged;
+
+    private void OnEnable()
+    {
+        _inputReader.LeftMouseButtonClick += OnMouseButtonClick;
+    }
+
+    private void OnDisable()
+    {
+        _inputReader.LeftMouseButtonClick -= OnMouseButtonClick;
+    }
 
     private void Start()
     {
         CounterChanged?.Invoke(_counter);
     }
 
-    private void Update()
+    private void OnMouseButtonClick()
     {
-        if (Input.GetMouseButtonDown(_leftMouseButtonIndex))
-        {
-            if (isWork)
+            if (_coroutine == null)
             {
-                isWork = false;
-                StopCoroutine(_coroutine);
+                _coroutine = StartCoroutine(Timer(_delay));
             }
             else
             {
-                isWork = true;
-                _coroutine = StartCoroutine(Timer(_delay));
+                StopCoroutine(_coroutine);
+                _coroutine = null;
             }
-        }
     }
 
     private IEnumerator Timer(float delay)
